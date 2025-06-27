@@ -24,10 +24,24 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
-app.get("/api/:date", function(req, res) {
-  const { date } = req.params;
+app.get("/api", function(req, res, next) {
+  const params = req.params;
+  const path = req.path.replace(/^\/|\/$/g, "").split("/");
 
-  const dateObj = date ? new Date(date) : new Date();
+  if (!path[1]) {
+    const dateObj = new Date();
+
+    return res.send({
+      unix: dateObj.getTime(),
+      utc: dateObj.toUTCString()
+    });
+  }
+
+  next();
+}).get("/api/:date", function(req, res) {
+  const date = req.date || req.params.date;
+
+  const dateObj = date ? new Date(Number(date) ? Number(date) : date) : new Date();
 
   if (isNaN(dateObj))
     return res.send({ error: "Invalid Date" });
